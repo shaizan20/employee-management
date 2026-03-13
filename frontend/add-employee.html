@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management System - Add Employee">
+    <title>Add Employee | Employee Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+
+    <!-- Sidebar -->
+    <button class="mobile-toggle" aria-label="Toggle menu">☰</button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">👥</div>
+            <div>
+                <h2>EMS</h2>
+                <span>Employee Management</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="employees.html" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Employees</span>
+            </a>
+            <a href="add-employee.html" class="nav-item active">
+                <span class="nav-icon">➕</span>
+                <span>Add Employee</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="admin-badge">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <div class="admin-name">Admin</div>
+                    <div class="admin-role">Administrator</div>
+                </div>
+            </div>
+            <a href="#" id="logout-btn" class="nav-item">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Add Employee</h1>
+                <div class="breadcrumb">
+                    <span>🏠</span>
+                    <a href="dashboard.html">Home</a>
+                    <span>/</span>
+                    <a href="employees.html">Employees</a>
+                    <span>/</span>
+                    <span>Add New</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card form-card">
+            <div class="card-header">
+                <h2>Employee Information</h2>
+            </div>
+            <div class="card-body">
+                <div id="form-alert" style="display: none;"></div>
+
+                <form id="add-employee-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employee_id">Employee ID *</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="employee_id" name="employee_id" placeholder="e.g., EMP006"
+                                    required class="no-icon">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="name" name="name" placeholder="e.g., John Doe" required
+                                    class="no-icon">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="department">Department *</label>
+                            <div class="input-wrapper">
+                                <select id="department" name="department" required class="no-icon">
+                                    <option value="">Select Department</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Legal">Legal</option>
+                                    <option value="Design">Design</option>
+                                    <option value="Support">Support</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <div class="input-wrapper">
+                                <input type="email" id="email" name="email" placeholder="e.g., john@company.com"
+                                    required class="no-icon">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <div class="input-wrapper">
+                                <input type="tel" id="phone" name="phone" placeholder="e.g., +91-9876543210" required
+                                    class="no-icon">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span id="submit-text">➕ Add Employee</span>
+                            <span id="submit-spinner" style="display: none;">Adding...</span>
+                        </button>
+                        <a href="employees.html" class="btn btn-ghost">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await auth.requireAuth()) return;
+
+            const form = document.getElementById('add-employee-form');
+            const alertBox = document.getElementById('form-alert');
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alertBox.style.display = 'none';
+
+                const data = {
+                    employee_id: document.getElementById('employee_id').value.trim(),
+                    name: document.getElementById('name').value.trim(),
+                    department: document.getElementById('department').value,
+                    email: document.getElementById('email').value.trim(),
+                    phone: document.getElementById('phone').value.trim()
+                };
+
+                // Validate
+                if (!data.employee_id || !data.name || !data.department || !data.email || !data.phone) {
+                    showFormAlert('All fields are required', 'error');
+                    return;
+                }
+
+                if (!validateEmail(data.email)) {
+                    showFormAlert('Please enter a valid email address', 'error');
+                    return;
+                }
+
+                if (!validatePhone(data.phone)) {
+                    showFormAlert('Please enter a valid phone number', 'error');
+                    return;
+                }
+
+                // Submit
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                submitSpinner.style.display = 'inline';
+
+                try {
+                    await api.post('/employees', data);
+                    showFormAlert('Employee added successfully!', 'success');
+                    showToast('Employee added successfully!', 'success');
+                    form.reset();
+
+                    setTimeout(() => {
+                        window.location.href = '/employees.html';
+                    }, 1500);
+                } catch (error) {
+                    showFormAlert(error.message || 'Failed to add employee', 'error');
+                    submitBtn.disabled = false;
+                    submitText.style.display = 'inline';
+                    submitSpinner.style.display = 'none';
+                }
+            });
+
+            function showFormAlert(message, type) {
+                alertBox.className = `alert alert-${type}`;
+                alertBox.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${message}`;
+                alertBox.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management System - Employee List">
+    <title>Employees | Employee Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+
+    <!-- Sidebar -->
+    <button class="mobile-toggle" aria-label="Toggle menu">☰</button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">👥</div>
+            <div>
+                <h2>EMS</h2>
+                <span>Employee Management</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="employees.html" class="nav-item active">
+                <span class="nav-icon">👤</span>
+                <span>Employees</span>
+            </a>
+            <a href="add-employee.html" class="nav-item">
+                <span class="nav-icon">➕</span>
+                <span>Add Employee</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="admin-badge">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <div class="admin-name">Admin</div>
+                    <div class="admin-role">Administrator</div>
+                </div>
+            </div>
+            <a href="#" id="logout-btn" class="nav-item">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Employees</h1>
+                <div class="breadcrumb">
+                    <span>🏠</span>
+                    <a href="dashboard.html">Home</a>
+                    <span>/</span>
+                    <span>Employees</span>
+                </div>
+            </div>
+            <a href="add-employee.html" class="btn btn-primary">
+                <span>➕</span> Add Employee
+            </a>
+        </div>
+
+        <!-- Employee Table Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>All Employees <span id="emp-count" style="color: var(--text-muted); font-weight: 400;"></span></h2>
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Search employees...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="table-container">
+                    <table class="data-table" id="employee-table">
+                        <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-tbody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="loader">
+                                        <div class="spinner"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let allEmployees = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await auth.requireAuth()) return;
+            loadEmployees();
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = searchInput.value.toLowerCase().trim();
+                    if (query === '') {
+                        renderEmployees(allEmployees);
+                    } else {
+                        const filtered = allEmployees.filter(emp =>
+                            emp.name.toLowerCase().includes(query) ||
+                            emp.department.toLowerCase().includes(query) ||
+                            emp.email.toLowerCase().includes(query) ||
+                            emp.employee_id.toLowerCase().includes(query) ||
+                            emp.phone.includes(query)
+                        );
+                        renderEmployees(filtered);
+                    }
+                }, 300);
+            });
+        });
+
+        async function loadEmployees() {
+            try {
+                const result = await api.get('/employees');
+                allEmployees = result.data || [];
+                document.getElementById('emp-count').textContent = `(${allEmployees.length})`;
+                renderEmployees(allEmployees);
+            } catch (error) {
+                showToast(error.message || 'Failed to load employees', 'error');
+            }
+        }
+
+        function renderEmployees(employees) {
+            const tbody = document.getElementById('employee-tbody');
+
+            if (employees.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <h3>No employees found</h3>
+                                <p>Try a different search or add a new employee</p>
+                                <a href="add-employee.html" class="btn btn-primary btn-sm">Add Employee</a>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = employees.map(emp => `
+                <tr id="row-${emp.id}">
+                    <td><strong>${emp.employee_id}</strong></td>
+                    <td class="employee-name">${emp.name}</td>
+                    <td><span class="department-badge">${emp.department}</span></td>
+                    <td>${emp.email}</td>
+                    <td>${emp.phone}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-icon edit" onclick="editEmployee(${emp.id})" title="Edit">✏️</button>
+                            <button class="btn-icon delete" onclick="deleteEmployee(${emp.id}, '${emp.name}')" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editEmployee(id) {
+            window.location.href = `edit-employee.html?id=${id}`;
+        }
+
+        async function deleteEmployee(id, name) {
+            const confirmed = await showConfirm(
+                'Delete Employee',
+                `Are you sure you want to delete <strong>${name}</strong>? This action cannot be undone.`
+            );
+
+            if (!confirmed) return;
+
+            try {
+                await api.delete(`/employees/${id}`);
+                showToast(`${name} deleted successfully`, 'success');
+
+                // Animate removal
+                const row = document.getElementById(`row-${id}`);
+                if (row) {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        allEmployees = allEmployees.filter(e => e.id !== id);
+                        document.getElementById('emp-count').textContent = `(${allEmployees.length})`;
+                        renderEmployees(allEmployees);
+                    }, 300);
+                }
+            } catch (error) {
+                showToast(error.message || 'Failed to delete employee', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

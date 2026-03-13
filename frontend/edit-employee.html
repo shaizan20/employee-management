@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management System - Edit Employee">
+    <title>Edit Employee | Employee Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+
+    <!-- Sidebar -->
+    <button class="mobile-toggle" aria-label="Toggle menu">☰</button>
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">👥</div>
+            <div>
+                <h2>EMS</h2>
+                <span>Employee Management</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="employees.html" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Employees</span>
+            </a>
+            <a href="add-employee.html" class="nav-item">
+                <span class="nav-icon">➕</span>
+                <span>Add Employee</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="admin-badge">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <div class="admin-name">Admin</div>
+                    <div class="admin-role">Administrator</div>
+                </div>
+            </div>
+            <a href="#" id="logout-btn" class="nav-item">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Edit Employee</h1>
+                <div class="breadcrumb">
+                    <span>🏠</span>
+                    <a href="dashboard.html">Home</a>
+                    <span>/</span>
+                    <a href="employees.html">Employees</a>
+                    <span>/</span>
+                    <span>Edit</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card form-card">
+            <div class="card-header">
+                <h2>Update Employee Information</h2>
+                <span id="emp-id-badge" class="department-badge" style="font-size: 0.85rem;"></span>
+            </div>
+            <div class="card-body">
+                <div id="form-alert" style="display: none;"></div>
+
+                <!-- Loading state -->
+                <div id="loading-state" class="loader">
+                    <div class="spinner"></div>
+                </div>
+
+                <form id="edit-employee-form" style="display: none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employee_id">Employee ID</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="employee_id" name="employee_id" readonly class="no-icon"
+                                    style="opacity: 0.6; cursor: not-allowed;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="name" name="name" placeholder="Full Name" required
+                                    class="no-icon">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="department">Department *</label>
+                            <div class="input-wrapper">
+                                <select id="department" name="department" required class="no-icon">
+                                    <option value="">Select Department</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Legal">Legal</option>
+                                    <option value="Design">Design</option>
+                                    <option value="Support">Support</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <div class="input-wrapper">
+                                <input type="email" id="email" name="email" placeholder="Email" required
+                                    class="no-icon">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <div class="input-wrapper">
+                                <input type="tel" id="phone" name="phone" placeholder="Phone" required class="no-icon">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success" id="update-btn">
+                            <span id="update-text">✓ Update Employee</span>
+                            <span id="update-spinner" style="display: none;">Updating...</span>
+                        </button>
+                        <a href="employees.html" class="btn btn-ghost">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let employeeId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await auth.requireAuth()) return;
+
+            // Get employee ID from URL
+            const params = new URLSearchParams(window.location.search);
+            employeeId = params.get('id');
+
+            if (!employeeId) {
+                showToast('No employee ID provided', 'error');
+                setTimeout(() => window.location.href = '/employees.html', 1000);
+                return;
+            }
+
+            loadEmployee();
+            setupForm();
+        });
+
+        async function loadEmployee() {
+            try {
+                const result = await api.get(`/employees/${employeeId}`);
+                const emp = result.data;
+
+                document.getElementById('employee_id').value = emp.employee_id;
+                document.getElementById('name').value = emp.name;
+                document.getElementById('department').value = emp.department;
+                document.getElementById('email').value = emp.email;
+                document.getElementById('phone').value = emp.phone;
+                document.getElementById('emp-id-badge').textContent = emp.employee_id;
+
+                // Show form, hide loader
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('edit-employee-form').style.display = 'block';
+
+            } catch (error) {
+                showToast(error.message || 'Employee not found', 'error');
+                setTimeout(() => window.location.href = '/employees.html', 1500);
+            }
+        }
+
+        function setupForm() {
+            const form = document.getElementById('edit-employee-form');
+            const alertBox = document.getElementById('form-alert');
+            const updateBtn = document.getElementById('update-btn');
+            const updateText = document.getElementById('update-text');
+            const updateSpinner = document.getElementById('update-spinner');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alertBox.style.display = 'none';
+
+                const data = {
+                    name: document.getElementById('name').value.trim(),
+                    department: document.getElementById('department').value,
+                    email: document.getElementById('email').value.trim(),
+                    phone: document.getElementById('phone').value.trim()
+                };
+
+                // Validate
+                if (!data.name || !data.department || !data.email || !data.phone) {
+                    showFormAlert('All fields are required', 'error');
+                    return;
+                }
+
+                if (!validateEmail(data.email)) {
+                    showFormAlert('Please enter a valid email address', 'error');
+                    return;
+                }
+
+                if (!validatePhone(data.phone)) {
+                    showFormAlert('Please enter a valid phone number', 'error');
+                    return;
+                }
+
+                // Submit
+                updateBtn.disabled = true;
+                updateText.style.display = 'none';
+                updateSpinner.style.display = 'inline';
+
+                try {
+                    await api.put(`/employees/${employeeId}`, data);
+                    showFormAlert('Employee updated successfully!', 'success');
+                    showToast('Employee updated successfully!', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = '/employees.html';
+                    }, 1500);
+                } catch (error) {
+                    showFormAlert(error.message || 'Failed to update employee', 'error');
+                    updateBtn.disabled = false;
+                    updateText.style.display = 'inline';
+                    updateSpinner.style.display = 'none';
+                }
+            });
+        }
+
+        function showFormAlert(message, type) {
+            const alertBox = document.getElementById('form-alert');
+            alertBox.className = `alert alert-${type}`;
+            alertBox.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${message}`;
+            alertBox.style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>

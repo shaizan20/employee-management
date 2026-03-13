@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management System - Admin Login">
+    <title>Login | Employee Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="animated-bg"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon">👥</div>
+                <h1>Welcome Back</h1>
+                <p class="login-subtitle">Sign in to manage employees</p>
+            </div>
+
+            <div id="login-alert" style="display: none;"></div>
+
+            <form id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required autocomplete="username">
+                        <span class="input-icon">👤</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <span class="input-icon">🔒</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+                    <span id="login-text">Sign In</span>
+                    <span id="login-spinner" style="display: none;">
+                        <span class="spinner" style="width:20px;height:20px;border-width:2px;"></span>
+                    </span>
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <p style="color: var(--text-muted); font-size: 0.8rem;">
+                    Default credentials: <strong style="color: var(--text-secondary);">admin</strong> / <strong style="color: var(--text-secondary);">admin123</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // If already authenticated, redirect to dashboard
+            auth.checkAuth().then(isAuth => {
+                if (isAuth) window.location.href = '/dashboard.html';
+            });
+
+            const form = document.getElementById('login-form');
+            const alertBox = document.getElementById('login-alert');
+            const loginBtn = document.getElementById('login-btn');
+            const loginText = document.getElementById('login-text');
+            const loginSpinner = document.getElementById('login-spinner');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alertBox.style.display = 'none';
+
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!username || !password) {
+                    showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+
+                // Show loading state
+                loginBtn.disabled = true;
+                loginText.style.display = 'none';
+                loginSpinner.style.display = 'inline-flex';
+
+                try {
+                    await auth.login(username, password);
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 800);
+                } catch (error) {
+                    showAlert(error.message || 'Invalid credentials', 'error');
+                    loginBtn.disabled = false;
+                    loginText.style.display = 'inline';
+                    loginSpinner.style.display = 'none';
+                }
+            });
+
+            function showAlert(message, type) {
+                alertBox.className = `alert alert-${type}`;
+                alertBox.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${message}`;
+                alertBox.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
