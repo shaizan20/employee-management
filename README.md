@@ -34,14 +34,14 @@ A full-stack **Employee Management System** web application with an automated **
 
 ## 🛠 Tech Stack
 
-| Layer      | Technology          |
-|------------|---------------------|
-| Frontend   | HTML, CSS, JavaScript |
-| Backend    | Node.js, Express.js |
-| Database   | MySQL               |
-| Auth       | bcryptjs, express-session |
-| CI/CD      | Jenkins             |
-| Version Control | Git, GitHub    |
+| Layer           | Technology                |
+| --------------- | ------------------------- |
+| Frontend        | HTML, CSS, JavaScript     |
+| Backend         | Node.js, Express.js       |
+| Database        | MySQL                     |
+| Auth            | bcryptjs, express-session |
+| CI/CD           | Jenkins                   |
+| Version Control | Git, GitHub               |
 
 ---
 
@@ -139,6 +139,7 @@ mysql -u root -p < database/schema.sql
 ```
 
 This will:
+
 - Create the `employee_management` database
 - Create the `admins` and `employees` tables
 - Insert a default admin user (`admin` / `admin123`)
@@ -168,23 +169,23 @@ The application will start at: **http://localhost:3000**
 
 ### Authentication
 
-| Method | Endpoint         | Description       |
-|--------|------------------|--------------------|
-| POST   | `/api/auth/login`  | Admin login        |
-| POST   | `/api/auth/logout` | Admin logout       |
-| GET    | `/api/auth/check`  | Check auth status  |
+| Method | Endpoint           | Description       |
+| ------ | ------------------ | ----------------- |
+| POST   | `/api/auth/login`  | Admin login       |
+| POST   | `/api/auth/logout` | Admin logout      |
+| GET    | `/api/auth/check`  | Check auth status |
 
 ### Employees (Protected – requires login)
 
-| Method | Endpoint                | Description          |
-|--------|-------------------------|----------------------|
-| GET    | `/api/employees`        | Get all employees    |
-| GET    | `/api/employees/:id`    | Get single employee  |
-| POST   | `/api/employees`        | Create new employee  |
-| PUT    | `/api/employees/:id`    | Update employee      |
-| DELETE | `/api/employees/:id`    | Delete employee      |
-| GET    | `/api/employees/count`  | Get total count      |
-| GET    | `/api/employees/search` | Search employees     |
+| Method | Endpoint                | Description         |
+| ------ | ----------------------- | ------------------- |
+| GET    | `/api/employees`        | Get all employees   |
+| GET    | `/api/employees/:id`    | Get single employee |
+| POST   | `/api/employees`        | Create new employee |
+| PUT    | `/api/employees/:id`    | Update employee     |
+| DELETE | `/api/employees/:id`    | Delete employee     |
+| GET    | `/api/employees/count`  | Get total count     |
+| GET    | `/api/employees/search` | Search employees    |
 
 ---
 
@@ -241,9 +242,9 @@ git push -u origin main
 
 ## 🔑 Default Credentials
 
-| Username | Password   |
-|----------|------------|
-| admin    | admin123   |
+| Username | Password |
+| -------- | -------- |
+| admin    | admin123 |
 
 > ⚠️ **Important**: Change the default password in production by updating the `admins` table in MySQL.
 
@@ -252,3 +253,5 @@ git push -u origin main
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+dsjcsjkdcnjslkdcn
