@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        NODE_ENV = 'production'
-        APP_PORT = '3000'
+        IMAGE_NAME = 'employee-management-system'
+        COMPOSE_FILE = 'docker-compose.yml'
     }
 
     triggers {
-        // Trigger build on push to GitHub
-        pollSCM('H/5 * * * *')
+        // Poll SCM every 2 minutes for changes
+        pollSCM('H/2 * * * *')
     }
 
     stages {
@@ -26,13 +26,6 @@ pipeline {
             }
         }
 
-        stage('Build Application') {
-            steps {
-                echo '🔨 Building application...'
-                bat 'echo Build complete - No build step required for this project'
-            }
-        }
-
         stage('Run Tests') {
             steps {
                 echo '🧪 Running tests...'
@@ -40,15 +33,34 @@ pipeline {
             }
         }
 
-        stage('Deploy Application') {
+        stage('Build Docker Image') {
             steps {
-                echo '🚀 Deploying application...'
+                echo '🐳 Building Docker image...'
+                bat "docker build -t %IMAGE_NAME%:latest ."
+                echo '✅ Docker image built successfully'
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                echo '🚀 Deploying application with Docker Compose...'
                 bat '''
-                    echo Stopping existing server if running...
-                    taskkill /F /IM node.exe 2>nul || echo No existing server to stop
-                    echo Starting application server...
-                    start /B node backend/server.js
-                    echo ✅ Application deployed successfully on port %APP_PORT%
+                    echo Stopping existing containers...
+                    docker-compose down --remove-orphans 2>nul || echo No existing containers to stop
+                    echo Starting application stack...
+                    docker-compose up -d --build
+                    echo ✅ Application stack deployed successfully
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo '🏥 Running health check...'
+                bat '''
+                    echo Waiting for application to start...
+                    timeout /t 15 /nobreak >nul
+                    curl -s -o nul -w "HTTP Status: %%{http_code}" http://localhost:3000/ || echo Health check warning - app may still be starting
                 '''
             }
         }
@@ -56,11 +68,15 @@ pipeline {
 
     post {
         success {
+            echo '═══════════════════════════════════════════'
             echo '✅ Pipeline completed successfully!'
-            echo '🌐 Application is running at http://localhost:3000'
+            echo '🐳 Docker containers are running'
+            echo '🌐 Application: http://localhost:3000'
+            echo '═══════════════════════════════════════════'
         }
         failure {
             echo '❌ Pipeline failed. Check the logs for details.'
+            bat 'docker-compose logs --tail=50 2>nul || echo Could not fetch container logs'
         }
         always {
             echo '📋 Pipeline execution finished.'

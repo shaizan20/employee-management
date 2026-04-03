@@ -3,3 +3,6 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+update_pwd.js
+jenkins_home/
+*.rar
