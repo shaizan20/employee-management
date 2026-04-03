@@ -46,9 +46,9 @@ pipeline {
                 echo '🚀 Deploying application with Docker Compose...'
                 sh '''
                     echo Stopping existing containers...
-                    docker-compose down --remove-orphans 2>/dev/null || echo No existing containers to stop
+                    docker compose down --remove-orphans 2>/dev/null || echo No existing containers to stop
                     echo Starting application stack...
-                    docker-compose up -d --build
+                    docker compose up -d --build
                     echo ✅ Application stack deployed successfully
                 '''
             }
@@ -76,7 +76,7 @@ pipeline {
         }
         failure {
             echo '❌ Pipeline failed. Check the logs for details.'
-            sh 'docker-compose logs --tail=50 2>/dev/null || echo "Could not fetch container logs"'
+            sh 'docker compose logs --tail=50 2>/dev/null || echo "Could not fetch container logs"'
         }
         always {
             echo '📋 Pipeline execution finished.'
