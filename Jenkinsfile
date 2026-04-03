@@ -22,21 +22,21 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing Node.js dependencies...'
-                bat 'npm install'
+                sh 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
                 echo '🧪 Running tests...'
-                bat 'npm test'
+                sh 'npm test'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 echo '🐳 Building Docker image...'
-                bat "docker build -t %IMAGE_NAME%:latest ."
+                sh "docker build -t ${IMAGE_NAME}:latest ."
                 echo '✅ Docker image built successfully'
             }
         }
@@ -44,9 +44,9 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 echo '🚀 Deploying application with Docker Compose...'
-                bat '''
+                sh '''
                     echo Stopping existing containers...
-                    docker-compose down --remove-orphans 2>nul || echo No existing containers to stop
+                    docker-compose down --remove-orphans 2>/dev/null || echo No existing containers to stop
                     echo Starting application stack...
                     docker-compose up -d --build
                     echo ✅ Application stack deployed successfully
@@ -57,10 +57,10 @@ pipeline {
         stage('Health Check') {
             steps {
                 echo '🏥 Running health check...'
-                bat '''
+                sh '''
                     echo Waiting for application to start...
-                    timeout /t 15 /nobreak >nul
-                    curl -s -o nul -w "HTTP Status: %%{http_code}" http://localhost:3000/ || echo Health check warning - app may still be starting
+                    sleep 15
+                    curl -s -o /dev/null -w "HTTP Status: %{http_code}" http://localhost:3000/ || echo Health check warning - app may still be starting
                 '''
             }
         }
@@ -76,7 +76,7 @@ pipeline {
         }
         failure {
             echo '❌ Pipeline failed. Check the logs for details.'
-            bat 'docker-compose logs --tail=50 2>nul || echo Could not fetch container logs'
+            sh 'docker-compose logs --tail=50 2>/dev/null || echo "Could not fetch container logs"'
         }
         always {
             echo '📋 Pipeline execution finished.'
